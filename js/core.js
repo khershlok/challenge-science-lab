@@ -12,7 +12,7 @@ function h(tag, attrs, ...kids) {
     else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
     else el.setAttribute(k, v === true ? '' : v);
   }
-  for (const k of kids.flat()) if (k != null && k !== false) el.append(k.nodeType ? k : document.createTextNode(k));
+  for (const k of kids.flat(Infinity)) if (k != null && k !== false) el.append(k.nodeType ? k : document.createTextNode(k));
   return el;
 }
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -304,7 +304,10 @@ function mountSim(def, host) {
   const recBtn = h('button', {class: 'btn primary', onclick: () => recordNow()}, sim.recordLabel || 'Record reading');
   const demoBtn = h('button', {class: 'btn', onclick: () => runDemo()}, '▶ Watch demo');
   const clearBtn = h('button', {class: 'btn ghost', onclick: () => { data = []; refreshResults(); say('Results cleared.'); }}, 'Clear results');
+  const labelFn = typeof EXPLAIN !== 'undefined' && EXPLAIN[def.id] && EXPLAIN[def.id].labels;
+  let showLabels = true;
   ctl.append(h('div', {class: 'btns'}, sim.read ? recBtn : null, def.demo ? demoBtn : null, sim.read ? clearBtn : null), msg);
+  if (labelFn) ctl.append(h('label', {class: 'small', style: 'display:flex;gap:6px;align-items:center'}, h('input', {type: 'checkbox', checked: true, onchange: e => { showLabels = e.target.checked; }}), 'Show labels on the apparatus'));
   function syncInputs() { for (const [k, i] of Object.entries(inputs)) i.set(s[k]); }
 
   const tableEl = h('div'), graphEl = h('div', {class: 'graph'}), anomBox = h('label', {class: 'small'});
@@ -365,6 +368,7 @@ function mountSim(def, host) {
     const dt = Math.min(.05, (now - last) / 1000); last = now; s.t += dt;
     sim.step && sim.step(s, dt, api);
     ctx.clearRect(0, 0, W, H); sim.draw(ctx, s, api);
+    if (showLabels && labelFn) drawCallouts(ctx, labelFn(s) || [], W, H);
     if (sim.readout) { const items = sim.readout(s); ro.innerHTML = items.map(([k, v]) => `<span>${k}: <b>${v}</b></span>`).join(''); }
     requestAnimationFrame(frame);
   }
@@ -375,4 +379,26 @@ function mountSim(def, host) {
     h('div', null, stage),
     h('div', {class: 'card'}, h('h3', null, 'Controls'), ctl)));
   return {tableEl, graphEl, anomBox, s, stop: () => { running = false; demoRun++; }};
+}
+
+/* labelled callouts drawn over a simulation: [text, x, y, labelX, labelY] (point first, then where the label sits) */
+function drawCallouts(c, items, W, H) {
+  c.save();
+  for (const it of items) {
+    if (!it) continue;
+    const [t, x, y, lx, ly] = it;
+    c.font = '600 12.5px system-ui, Segoe UI, sans-serif';
+    const lines = String(t).split('\n'), w = Math.max(...lines.map(l => c.measureText(l).width)) + 12, hh = lines.length * 16 + 6;
+    const bx = clamp(lx - w / 2, 2, W - w - 2), by = clamp(ly - hh / 2, 2, H - hh - 2);
+    const ax = clamp(x, bx, bx + w), ay = clamp(y, by, by + hh);
+    if (Math.hypot(ax - x, ay - y) > 4) {
+      c.strokeStyle = 'rgba(29,39,51,.75)'; c.lineWidth = 1.3; c.beginPath(); c.moveTo(ax, ay); c.lineTo(x, y); c.stroke();
+      c.fillStyle = 'rgba(29,39,51,.85)'; c.beginPath(); c.arc(x, y, 2.6, 0, 7); c.fill();
+    }
+    c.fillStyle = 'rgba(255,253,240,.95)'; c.strokeStyle = 'rgba(29,39,51,.55)'; c.lineWidth = 1;
+    c.beginPath(); c.roundRect(bx, by, w, hh, 5); c.fill(); c.stroke();
+    c.fillStyle = '#1d2733'; c.textAlign = 'left'; c.textBaseline = 'top';
+    lines.forEach((l, i) => c.fillText(l, bx + 6, by + 4 + i * 16));
+  }
+  c.restore();
 }

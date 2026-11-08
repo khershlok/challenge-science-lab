@@ -148,7 +148,10 @@
         const V = s.run || s.time ? vol(s.cat, s.time) : 0;
         // conical flask
         c.fillStyle = 'rgba(200,225,245,.55)'; c.beginPath(); c.moveTo(105, 330); c.lineTo(195, 330); c.lineTo(225, 402); c.lineTo(75, 402); c.closePath(); c.fill();
-        if (CAT[s.cat].col && (s.run || s.time)) { c.fillStyle = CAT[s.cat].col; c.beginPath(); c.ellipse(150, 398, 50, 4, 0, 0, 7); c.fill(); }
+        if (CAT[s.cat].col) {
+          if (s.run || s.time) { c.fillStyle = CAT[s.cat].col; c.beginPath(); c.ellipse(150, 402, 30, 9, 0, Math.PI, 0); c.fill(); }
+          else { D.rect(c, 242, 394, 62, 9, '#efe9d8', '#999', 1, 3); c.fillStyle = CAT[s.cat].col; c.beginPath(); c.ellipse(273, 395, 20, 8, 0, Math.PI, 0); c.fill(); D.text(c, '0.5 g weighed', 273, 375, {size: 10, align: 'center', col: '#444'}); }
+        }
         c.strokeStyle = '#5d7083'; c.lineWidth = 2.2; c.beginPath(); c.moveTo(130, 250); c.lineTo(130, 300); c.lineTo(72, 404); c.lineTo(228, 404); c.lineTo(170, 300); c.lineTo(170, 250); c.stroke();
         D.rect(c, 126, 236, 48, 18, '#b5651d', null, 0, 3);
         D.bubbles(c, s.bub.filter(b => !b.cyl));

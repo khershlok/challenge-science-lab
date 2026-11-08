@@ -3,7 +3,7 @@
 const SUBJ = {physics: 'Physics', chemistry: 'Chemistry', biology: 'Biology'};
 let current = null;
 
-function page(title, ...kids) { const app = $('#app'); app.innerHTML = ''; app.append(...kids); document.title = title ? title + ' · Challenge Science Lab' : 'Challenge Science Lab'; window.scrollTo(0, 0); }
+function page(title, ...kids) { const app = $('#app'); app.innerHTML = ''; app.append(...kids.flat(Infinity).filter(k => k != null && k !== false)); document.title = title ? title + ' · Challenge Science Lab' : 'Challenge Science Lab'; window.scrollTo(0, 0); }
 
 /* ---------- home ---------- */
 function heroCanvas() {
@@ -22,29 +22,6 @@ function heroCanvas() {
   return cv;
 }
 
-function home() {
-  const st = Store.get(), nDone = Object.keys(st.practicals || {}).length, nTop = Object.values(st.topics || {}).filter(Boolean).length;
-  const spec = PRACTICALS.filter(p => p.specimen);
-  page('',
-    h('section', {class: 'hero'},
-      h('div', null,
-        h('span', {class: 'pill spec'}, 'Westminster Challenge · Science · first exam 2027'),
-        h('h1', {style: 'margin-top:10px'}, 'See the practicals. Take the readings. Nail the graph.'),
-        h('p', {class: 'lead'}, `${PRACTICALS.length} animated practicals across physics, chemistry and biology. Run each one yourself, record real-looking results with errors, then get your table and graph marked the way the Challenge practical paper is marked: collecting, presenting and analysing data.`),
-        h('div', {class: 'btns'}, h('a', {class: 'btn primary', href: '#/lab'}, '🧪 Open the practical lab'), h('a', {class: 'btn', href: '#/exam'}, 'How the exam works')),
-        h('p', {class: 'small muted', style: 'margin-top:12px'}, `Your progress on this device: ${nDone} of ${PRACTICALS.length} practicals tried · ${nTop} syllabus topics ticked off${st.quizBest ? ` · best quiz ${st.quizBest}/10` : ''}`)),
-      heroCanvas()),
-    h('h2', null, 'Start with the specimen papers'),
-    h('div', {class: 'grid g3 section'}, spec.map(pcard)),
-    h('h2', null, 'Everything in the app'),
-    h('div', {class: 'tiles'},
-      tile('#/lab', '🧪', 'Practical lab', 'Animated experiments with live readings, results tables and auto-plotted graphs.'),
-      tile('#/skills', '📈', 'Data skills', 'Fix bad tables, plot points by hand, spot anomalies and name the variables.'),
-      tile('#/calc', '🧮', 'Calculations', 'Endless generated questions: speed, density, moments, Rf, pressure and more, with working.'),
-      tile('#/quiz', '✅', 'Quiz', `${QUIZ.length} multiple-choice questions in the style of the specimen core paper.`),
-      tile('#/topics', '📋', 'Syllabus checklist', 'Every topic in the syllabus guidance, with key facts and links to Bitesize and Cognito.'),
-      tile('#/exam', '🎓', 'The exam', 'What is in the core and practical papers, and how the marks are earned.')));
-}
 const tile = (href, ico, t, p) => h('a', {class: 'tile', href}, h('div', {class: 'ico'}, ico), h('h3', null, t), h('p', null, p));
 function pcard(p) {
   return h('a', {class: 'pcard ' + p.subject, href: '#/lab/' + p.id},
@@ -72,7 +49,14 @@ function practicalPage(id) {
     h('div', {class: 'crumbs'}, h('a', {href: '#/lab'}, '← All practicals')),
     h('div', {class: 'phead'}, h('div', null, h('div', {class: 'row', style: 'display:flex;gap:6px;margin-bottom:6px'}, h('span', {class: 'pill ' + p.subject}, SUBJ[p.subject]), p.specimen ? h('span', {class: 'pill spec'}, 'in specimen paper') : null, h('span', {class: 'pill', style: 'background:#eef2f6'}, p.syllabus)), h('h1', null, p.title), h('p', {class: 'lead', style: 'margin:0'}, p.aim))),
     host);
+  const X = EXPLAIN[p.id], vids = (VIDEOS[p.id] || []), rel = LESSONS.filter(L => (L.labs || []).includes(p.id));
+  if (X) host.append(h('div', {class: 'explain'}, h('h3', null, 'What this experiment does'), h('p', null, X.what),
+    h('h3', {style: 'margin-top:12px'}, 'Where everything goes'), h('ol', null, X.setup.map(t => h('li', null, t))),
+    h('p', {class: 'small muted'}, 'The labels on the picture below show each piece of apparatus. You can turn them off in the controls.')));
   const m = mountSim(p, host);
+  if (X) host.append(h('div', {class: 'explain', style: 'background:#f1faf8;border-color:#bfe3da'}, h('h3', null, 'What is going on'), h('p', null, X.going),
+    rel.length ? h('p', {class: 'small'}, h('b', null, 'Learn the theory: '), rel.map((L, k) => [k ? ' · ' : '', h('a', {href: '#/learn/' + L.id}, L.code + ' ' + L.title)])) : null));
+  if (vids.length) host.append(h('h3', null, 'Watch'), videoGrid(vids));
   current = m;
   if (p.table) host.append(h('div', {class: 'grid g2', style: 'margin-top:18px;align-items:start'},
     h('div', {class: 'card'}, h('h3', null, 'Results table'), h('p', {class: 'small muted'}, 'Units go in the headings, readings to the same precision, and repeats are averaged.'), m.tableEl),
@@ -137,7 +121,7 @@ function topicsPage_() { const box = h('div'); page('Syllabus', h('h1', null, 'S
 function examPage() {
   page('The exam',
     h('h1', null, 'The Challenge Science papers'),
-    h('p', {class: 'lead'}, 'From the specimen papers for the first examination in 2027. Pitched at the top end of 13+ and into early GCSE: it rewards clear reasoning, careful data handling and applying ideas to unfamiliar situations.'),
+    h('p', {class: 'lead'}, 'From the specimen papers for the first examination in 2027. The syllabus follows the ISEB 13+ list, but the questions reach into GCSE; this app teaches at GCSE level with early A level stretch, because the paper rewards clear reasoning, careful data handling and applying ideas to unfamiliar situations.'),
     h('div', {class: 'grid g2 section'},
       h('div', {class: 'card'}, h('h2', null, 'Core paper · 90 minutes'), h('ul', {class: 'tidy'},
         ['Three sections of 30 minutes each: Physics, Chemistry, Biology. Answer every question.', 'Each section opens with multiple-choice questions (A–E in physics), then longer structured questions.', 'Calculator allowed. Any data needed is given in the question, such as equations like p₁V₁ = p₂V₂.', 'Expect unfamiliar contexts: the specimen has Empedocles’ clepsydra, Eratosthenes measuring the Earth, catalysts for hydrogen peroxide, and Rf values of amino acids.', 'Skills tested: calculations with units and significant figures, force diagrams, sketching and justifying graphs, designing experiments, variables, plotting with a line of best fit and spotting anomalies.'].map(t => h('li', null, t))),
@@ -152,6 +136,7 @@ function examPage() {
       h('div', {class: 'card'}, h('h3', null, 'Handle data fluently'), h('p', {class: 'small'}, 'Tables, graphs, anomalies, means, rearranging equations, percentages and unit conversions come up in every section.'), h('a', {href: '#/calc'}, 'Calculation drill →'))),
     h('div', {class: 'callout tip'}, h('b', null, 'Exam technique: '), 'Look at the marks in brackets: 2 marks usually means two separate points. In “explain” questions, give the reason with “because”. With calculations: equation → substitute → answer → unit. For “describe the pattern”, quote data from the graph.'),
     h('h2', null, 'Trusted revision sources'),
+    h('p', {class: 'small muted'}, 'Videos in the lessons and practicals are from Cognito, with a few practical walkthroughs from Free Science Lessons. Both are free, UK-curriculum GCSE channels.'),
     h('div', {class: 'src'}, [['BBC Bitesize KS3 & GCSE Science', 'https://www.bbc.co.uk/bitesize'], ['Cognito (free videos and notes)', 'https://cognito.org/'], ['Save My Exams', 'https://www.savemyexams.com/'], ['Physics & Maths Tutor', 'https://www.physicsandmathstutor.com/'], ['Oak National Academy', 'https://www.thenational.academy/'], ['ISEB (13+ syllabus)', 'https://www.iseb.co.uk/']].map(([n, u]) => h('a', {href: u, target: '_blank', rel: 'noopener'}, n + ' ↗'))));
 }
 
@@ -168,6 +153,10 @@ function route() {
   else if (a === 'quiz') quizPage_();
   else if (a === 'topics') topicsPage_();
   else if (a === 'exam') examPage();
+  else if (a === 'learn' && b) lessonPage(b);
+  else if (a === 'learn') learnPage();
+  else if (a === 'core') corePage();
+  else if (a === 'specialism') specialismPage();
   else home();
 }
 window.addEventListener('hashchange', route);
