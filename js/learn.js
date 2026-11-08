@@ -169,7 +169,12 @@ function videoGrid(list) {
   return h('div', {class: 'vids section'}, list.map(v => {
     const frame = h('div', {class: 'frame', role: 'button', tabindex: 0, title: 'Play ' + v.t},
       h('img', {src: `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`, alt: '', loading: 'lazy'}), h('span', {class: 'play'}, '▶'));
-    const play = () => { frame.innerHTML = ''; frame.append(h('iframe', {src: `https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1&rel=0`, allow: 'autoplay; encrypted-media; picture-in-picture', allowfullscreen: true, title: v.t})); frame.onclick = null; };
+    const play = () => {
+      // open full screen by default (must be called inside the click); leaving full screen keeps the video playing in the page
+      const fs = frame.requestFullscreen || frame.webkitRequestFullscreen;
+      if (fs) try { const p = fs.call(frame); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+      frame.innerHTML = ''; frame.append(h('iframe', {src: `https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1&rel=0`, allow: 'autoplay; encrypted-media; picture-in-picture; fullscreen', allowfullscreen: true, title: v.t})); frame.onclick = null; frame.onkeydown = null;
+    };
     frame.onclick = play; frame.onkeydown = e => { if (e.key === 'Enter') play(); };
     return h('div', {class: 'vid'}, frame, h('div', {class: 'vt'}, v.t, h('small', null, `${v.by || 'Cognito'} · ${v.len}`)));
   }));
