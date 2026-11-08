@@ -262,3 +262,10 @@ table.punnett td.tall { background: #e9f4e8; } table.punnett td.short { backgrou
 .explain h3 { margin: 0 0 6px; }
 .explain p { margin: 6px 0; line-height: 1.6; }
 .explain ol { margin: 6px 0; padding-left: 20px; }
+
+/* ---------- Explained in full ---------- */
+.deep { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 20px 14px; }
+.deep section + section { border-top: 1px solid var(--line); }
+.deep h3 { margin: 14px 0 4px; font-size: 1.02rem; color: var(--accent); }
+.deep p { line-height: 1.7; margin: 6px 0 10px; max-width: 75ch; }
+.explain .deep { border: 0; padding: 0; background: transparent; }

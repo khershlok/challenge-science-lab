@@ -72,6 +72,7 @@ function lessonPage(id) {
     secHead(num(), 'The breakdown', 'Read this carefully. Everything after it builds on it.'),
     h('div', {class: 'teach'}, L.points.map(p => h('div', {class: 'tp ' + (p.tag || 'rule')}, h('span', {class: 'tag'}, TAGS[p.tag || 'rule']), h('p', null, h('b', {html: p.title + '. '}), h('span', {html: p.text}))))),
     (L.tables || []).map(refTable),
+    DEEP[L.id] ? [secHead('📖', 'Explained in full', 'The same ideas in more depth, step by step. Read this if any part of the breakdown was unclear.'), deepBlock(DEEP[L.id])] : null,
     vizBox ? [secHead('▶', 'See it move', L.vizNote || 'Change the settings and watch what happens.'), vizBox] : null,
     labs.length ? h('div', {class: 'callout tip'}, h('b', null, 'Try it in the lab: '), labs.map((p, k) => [k ? ' · ' : '', h('a', {href: '#/lab/' + p.id}, p.title)]), ' (animated practical with live readings).') : null,
 
@@ -406,3 +407,8 @@ const VIZ = {
     });
   }
 };
+
+/* longer explanations: a list of [heading, html] shown as readable sections */
+function deepBlock(parts) {
+  return h('div', {class: 'deep'}, parts.map(([t, body]) => h('section', null, h('h3', null, t), h('div', {html: body}))));
+}

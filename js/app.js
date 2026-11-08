@@ -56,6 +56,7 @@ function practicalPage(id) {
   const m = mountSim(p, host);
   if (X) host.append(h('div', {class: 'explain', style: 'background:#f1faf8;border-color:#bfe3da'}, h('h3', null, 'What is going on'), h('p', null, X.going),
     rel.length ? h('p', {class: 'small'}, h('b', null, 'Learn the theory: '), rel.map((L, k) => [k ? ' · ' : '', h('a', {href: '#/learn/' + L.id}, L.code + ' ' + L.title)])) : null));
+  if (DEEPX[p.id]) host.append(h('div', {class: 'explain', style: 'background:#fff'}, h('h3', null, 'The science in more depth'), deepBlock(DEEPX[p.id])));
   if (vids.length) host.append(h('h3', null, 'Watch'), videoGrid(vids));
   current = m;
   if (p.table) host.append(h('div', {class: 'grid g2', style: 'margin-top:18px;align-items:start'},
