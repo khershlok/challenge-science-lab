@@ -38,7 +38,7 @@ function learnPage() {
     h('div', {class: 'callout tip'}, h('b', null, 'How each lesson works. '), 'Start with a short video. Then: 1 The breakdown teaches the idea. 2 Worked examples show it step by step. 3 Your turn checks it, with every answer explained. 4 Challenge questions are harder written questions in the style of the exam, with a model answer to mark yourself against. Then key words and a short A level taster.'),
     Object.keys(UNITS).map(u => {
       const ls = LESSONS.filter(L => L.subject === u);
-      return ls.length ? [h('h2', null, UNITS[u]), h('div', {class: 'lgrid section'}, ls.map(lcard))] : null;
+      return ls.length ? [h('h2', null, UNITS[u]), subjectGrid(ls)] : null;
     }));
 }
 function lcard(L) {
@@ -411,4 +411,11 @@ const VIZ = {
 /* longer explanations: a list of [heading, html] shown as readable sections */
 function deepBlock(parts) {
   return h('div', {class: 'deep'}, parts.map(([t, body]) => h('section', null, h('h3', null, t), h('div', {html: body}))));
+}
+
+/* lesson cards for one subject; lessons with a group (e.g. Reproduction) get their own sub-heading */
+function subjectGrid(ls) {
+  const groups = [...new Set(ls.filter(L => L.group).map(L => L.group))];
+  return [h('div', {class: 'lgrid section'}, ls.filter(L => !L.group).map(lcard)),
+    groups.map(g => [h('h3', {class: 'lgroup'}, g), h('div', {class: 'lgrid section'}, ls.filter(L => L.group === g).map(lcard))])];
 }

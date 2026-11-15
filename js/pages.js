@@ -35,7 +35,7 @@ function corePage() {
       tile('#/quiz', '✅', 'Quiz', `${QUIZ.length} multiple-choice questions in the style of the specimen.`),
       tile('#/calc', '🧮', 'Calculations', 'Endless generated questions with worked answers.'),
       tile('#/topics', '📋', 'Syllabus checklist', 'Every topic in the syllabus guidance, ticked off as you go.')),
-    ['physics', 'chemistry', 'biology'].map(s => [h('h2', null, SUBJ[s]), h('div', {class: 'lgrid section'}, LESSONS.filter(L => L.subject === s).map(lcard))]));
+    ['physics', 'chemistry', 'biology'].map(s => [h('h2', null, SUBJ[s]), subjectGrid(LESSONS.filter(L => L.subject === s))]));
 }
 
 function specialismPage() {
