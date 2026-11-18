@@ -270,3 +270,4 @@ table.punnett td.tall { background: #e9f4e8; } table.punnett td.short { backgrou
 .deep p { line-height: 1.7; margin: 6px 0 10px; max-width: 75ch; }
 .explain .deep { border: 0; padding: 0; background: transparent; }
 .lgroup { margin: 4px 0 8px; font-size: 1.05rem; color: var(--bio); }
+.readout.prose { display: block; line-height: 1.55; }

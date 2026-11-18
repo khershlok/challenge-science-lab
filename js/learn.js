@@ -57,6 +57,7 @@ function lessonPage(id) {
   LStore.set(id, s => { s.seen = true; });
   const i = LESSONS.indexOf(L), prev = LESSONS[i - 1], next = LESSONS[i + 1];
   const vizBox = L.viz && VIZ[L.viz] ? h('div', {class: 'card viz'}) : null;
+  const diag = (L.diagrams || []).filter(([k]) => VIZ[k]).map(([k, t, n]) => ({k, t, n, box: h('div', {class: 'card viz'})}));
   const scoreEl = h('p', {class: 'lscore'});
   const labs = (L.labs || []).map(x => PRACTICALS.find(p => p.id === x)).filter(Boolean);
   let n = 0; const num = () => String(++n);
@@ -74,6 +75,7 @@ function lessonPage(id) {
     (L.tables || []).map(refTable),
     DEEP[L.id] ? [secHead('📖', 'Explained in full', 'The same ideas in more depth, step by step. Read this if any part of the breakdown was unclear.'), deepBlock(DEEP[L.id])] : null,
     vizBox ? [secHead('▶', 'See it move', L.vizNote || 'Change the settings and watch what happens.'), vizBox] : null,
+    diag.map(d => [secHead('▶', d.t, d.n), d.box]),
     labs.length ? h('div', {class: 'callout tip'}, h('b', null, 'Try it in the lab: '), labs.map((p, k) => [k ? ' · ' : '', h('a', {href: '#/lab/' + p.id}, p.title)]), ' (animated practical with live readings).') : null,
 
     L.worked ? [secHead(num(), 'Worked examples', 'Try each one yourself, then reveal the steps one at a time.'), L.worked.map(workedEl)] : null,
@@ -95,6 +97,7 @@ function lessonPage(id) {
       prev ? h('a', {class: 'btn', href: '#/learn/' + prev.id}, `← ${prev.code} ${prev.title}`) : h('span'),
       next ? h('a', {class: 'btn primary', href: '#/learn/' + next.id}, `${next.code} ${next.title} →`) : h('a', {class: 'btn', href: '#/learn'}, 'Back to all lessons')));
   if (vizBox) VIZ[L.viz](vizBox);
+  diag.forEach(d => VIZ[d.k](d.box));
 }
 
 function refTable(t) {
